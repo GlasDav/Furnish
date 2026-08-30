@@ -1,6 +1,6 @@
 'use client';
 
-import { useId } from 'react';
+import { useId, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 
 import {
   CATALOGUE,
@@ -31,10 +31,12 @@ function ItemSymbol({
   item,
   selected,
   onSelect,
+  onPointerDown,
 }: {
   item: PlacedItem;
   selected: boolean;
   onSelect?: (itemId: string) => void;
+  onPointerDown?: (itemId: string, event: ReactPointerEvent<SVGGElement>) => void;
 }) {
   const definition = catalogueById.get(item.catalogueItemId);
   if (!definition) return null;
@@ -54,6 +56,7 @@ function ItemSymbol({
       tabIndex={onSelect ? 0 : undefined}
       aria-label={`${definition.name}${item.locked ? ', locked' : ''}`}
       onClick={() => onSelect?.(item.itemId)}
+      onPointerDown={(event) => onPointerDown?.(item.itemId, event)}
       onKeyDown={(event) => {
         if (onSelect && (event.key === 'Enter' || event.key === ' ')) {
           event.preventDefault();
@@ -96,6 +99,7 @@ export function RoomCanvas({
   items,
   selectedItemId,
   onSelect,
+  onItemMove,
   compact = false,
   label = 'Prepared living room plan',
 }: {
@@ -103,6 +107,7 @@ export function RoomCanvas({
   items: PlacedItem[];
   selectedItemId?: string | null;
   onSelect?: (itemId: string) => void;
+  onItemMove?: (itemId: string, xMm: number, yMm: number, phase: 'start' | 'move' | 'end') => void;
   compact?: boolean;
   label?: string;
 }) {
@@ -112,10 +117,49 @@ export function RoomCanvas({
   const viewWidth = width + INSET * 2;
   const viewHeight = height + INSET * 2 + (compact ? 0 : 10);
   const sortedItems = [...items].sort((left, right) => Number(catalogueById.get(left.catalogueItemId)?.solid) - Number(catalogueById.get(right.catalogueItemId)?.solid));
-  const furnitureLabels = createFurnitureLabels(sortedItems, CATALOGUE);
+  const furnitureLabels = createFurnitureLabels(sortedItems, CATALOGUE, compact);
+  const dragRef = useRef<{ itemId: string; offsetX: number; offsetY: number; moved: boolean; xMm: number; yMm: number } | null>(null);
+
+  const roomPoint = (svg: SVGSVGElement, clientX: number, clientY: number) => {
+    const point = svg.createSVGPoint();
+    point.x = clientX;
+    point.y = clientY;
+    const localPoint = point.matrixTransform(svg.getScreenCTM()?.inverse());
+    return { xMm: Math.round((localPoint.x - INSET) / SCALE), yMm: Math.round((localPoint.y - INSET) / SCALE) };
+  };
+
+  const startItemDrag = (itemId: string, event: ReactPointerEvent<SVGGElement>) => {
+    const item = items.find((entry) => entry.itemId === itemId);
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!item || item.locked || !onItemMove || !svg) return;
+    const point = roomPoint(svg, event.clientX, event.clientY);
+    dragRef.current = { itemId, offsetX: item.xMm - point.xMm, offsetY: item.yMm - point.yMm, moved: false, xMm: item.xMm, yMm: item.yMm };
+    svg.setPointerCapture(event.pointerId);
+    onSelect?.(itemId);
+    onItemMove(itemId, item.xMm, item.yMm, 'start');
+    event.preventDefault();
+  };
+
+  const moveItemDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
+    const drag = dragRef.current;
+    if (!drag || !onItemMove) return;
+    const point = roomPoint(event.currentTarget, event.clientX, event.clientY);
+    drag.xMm = point.xMm + drag.offsetX;
+    drag.yMm = point.yMm + drag.offsetY;
+    drag.moved = true;
+    onItemMove(drag.itemId, drag.xMm, drag.yMm, 'move');
+  };
+
+  const endItemDrag = (event: ReactPointerEvent<SVGSVGElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    if (drag.moved) onItemMove?.(drag.itemId, drag.xMm, drag.yMm, 'end');
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    dragRef.current = null;
+  };
 
   return (
-    <svg className={`room-canvas ${compact ? 'compact' : ''}`} viewBox={`0 0 ${viewWidth} ${viewHeight}`}>
+    <svg className={`room-canvas ${compact ? 'compact' : ''} ${onItemMove ? 'interactive' : ''}`} viewBox={`0 0 ${viewWidth} ${viewHeight}`} onPointerMove={moveItemDrag} onPointerUp={endItemDrag} onPointerCancel={endItemDrag}>
       <title>{label}</title>
       <defs>
         <pattern id={`grid-${generatedId}`} width="20" height="20" patternUnits="userSpaceOnUse">
@@ -133,11 +177,18 @@ export function RoomCanvas({
       {sortedItems.length ? (
         <>
           {sortedItems.map((item) => (
-            <ItemSymbol key={item.itemId} item={item} selected={selectedItemId === item.itemId} onSelect={onSelect} />
+            <ItemSymbol key={item.itemId} item={item} selected={selectedItemId === item.itemId} onSelect={onSelect} onPointerDown={startItemDrag} />
           ))}
           <g className="furniture-labels" aria-hidden="true">
             {furnitureLabels.map((itemLabel) => (
-              <text className="furniture-label" key={itemLabel.itemId} x={itemLabel.x} y={itemLabel.y}>{itemLabel.name}</text>
+              <g className="furniture-label" key={itemLabel.itemId} transform={`translate(${itemLabel.x} ${itemLabel.y})`}>
+                <rect x={-itemLabel.width / 2} y={-itemLabel.height / 2} width={itemLabel.width} height={itemLabel.height} rx="4" />
+                <text fontSize={itemLabel.fontSize}>
+                  {itemLabel.lines.map((line, index) => (
+                    <tspan key={`${line}-${index}`} x="0" y={-(itemLabel.lines.length - 1) * itemLabel.lineHeight / 2 + itemLabel.fontSize * 0.34 + index * itemLabel.lineHeight}>{line}</tspan>
+                  ))}
+                </text>
+              </g>
             ))}
           </g>
         </>

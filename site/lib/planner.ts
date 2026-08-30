@@ -623,19 +623,49 @@ export class PlannerService {
     return { ok: true, revision, removedItemId: itemId };
   }
 
-  addCatalogueItem(expectedRevision: number, catalogueItemId: string): PlannerResult<{ item: PlacedItem }> {
+  addCatalogueItem(
+    expectedRevision: number,
+    catalogueItemId: string,
+    placement: { xMm: number; yMm: number; rotationDeg: Rotation },
+  ): PlannerResult<{ item: PlacedItem }> {
     const stale = this.stale(expectedRevision);
     if (stale) return stale;
     const definition = CATALOGUE_BY_ID.get(catalogueItemId);
     if (!definition) return { ok: false, revision: this.state.revision, error: { code: 'UNKNOWN_ITEM', message: `Unknown catalogue item ${catalogueItemId}.` } };
-    const item: PlacedItem = { itemId: `manual-${Date.now()}`, catalogueItemId, xMm: Math.round(this.state.room.widthMm / 2), yMm: Math.round(this.state.room.depthMm / 2), rotationDeg: 0, locked: false };
+    const item: PlacedItem = { itemId: `manual-${Date.now()}`, catalogueItemId, ...placement, locked: false };
     const items = [...clone(this.state.workingLayout.items), item];
     const validation = validateCandidateLayout({ revision: this.state.revision, room: this.state.room, candidateItems: items });
-    if (!validation.valid) return { ok: false, revision: this.state.revision, error: { code: 'NO_VALID_DEFAULT_POSITION', message: 'The centre placement is blocked. Clear space before adding this item.', violations: validation.violations } };
+    if (!validation.valid) return { ok: false, revision: this.state.revision, error: { code: 'INVALID_LAYOUT', message: 'That position is not valid for this item.', violations: validation.violations } };
     const next = clone(this.state);
     next.workingLayout.items = items;
     const revision = this.commit(next, 'human', `Added ${definition.name}`);
     return { ok: true, revision, item };
+  }
+
+  updateItemPlacement(
+    expectedRevision: number,
+    itemId: string,
+    placement: { xMm: number; yMm: number; rotationDeg: Rotation },
+    actor: Actor = 'human',
+  ): PlannerResult<{ item: PlacedItem }> {
+    const stale = this.stale(expectedRevision);
+    if (stale) return stale;
+    const item = this.state.workingLayout.items.find((entry) => entry.itemId === itemId);
+    if (!item) return { ok: false, revision: this.state.revision, error: { code: 'ITEM_NOT_FOUND', message: `${itemId} is not in the Working Layout.` } };
+    if (item.locked) return { ok: false, revision: this.state.revision, error: { code: 'LOCKED_ITEM_CHANGED', message: 'Unlock the item before moving or rotating it.' } };
+    const items = this.state.workingLayout.items.map((entry) => entry.itemId === itemId ? { ...entry, ...placement } : entry);
+    const validation = validateCandidateLayout({
+      revision: this.state.revision,
+      room: this.state.room,
+      candidateItems: items,
+      lockedItems: this.state.workingLayout.items.filter((entry) => entry.locked),
+    });
+    if (!validation.valid) return { ok: false, revision: this.state.revision, error: { code: 'INVALID_LAYOUT', message: 'That position would invalidate the Working Layout.', violations: validation.violations } };
+    const next = clone(this.state);
+    next.workingLayout.items = clone(items);
+    const nextItem = next.workingLayout.items.find((entry) => entry.itemId === itemId)!;
+    const revision = this.commit(next, actor, `Moved ${CATALOGUE_BY_ID.get(item.catalogueItemId)?.name ?? itemId}`);
+    return { ok: true, revision, item: clone(nextItem) };
   }
 
   updateRoom(expectedRevision: number, widthMm: number, depthMm: number): PlannerResult<{ room: Room }> {

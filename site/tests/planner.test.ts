@@ -116,7 +116,12 @@ void test('removing an unlocked item updates the Working Layout and undo restore
   const service = new PlannerService();
   assert.equal(service.commitPreparedVariant('conversation').ok, true);
 
-  const removed = service.removeItem(2, 'armchair-1');
+  const serviceWithRemoval = service as PlannerService & {
+    removeItem(expectedRevision: number, itemId: string): { ok: boolean; revision: number };
+  };
+  assert.equal(typeof serviceWithRemoval.removeItem, 'function');
+
+  const removed = serviceWithRemoval.removeItem(2, 'armchair-1');
   assert.equal(removed.ok, true);
   assert.equal(removed.revision, 3);
   assert.equal(service.getSnapshot().state.workingLayout.items.some((item) => item.itemId === 'armchair-1'), false);
@@ -133,9 +138,82 @@ void test('removing a Locked Item is rejected without changing state', () => {
   assert.equal(service.commitPreparedVariant('conversation').ok, true);
   assert.equal(service.setItemLock(2, 'sofa-1', true).ok, true);
 
-  const removed = service.removeItem(3, 'sofa-1');
+  const serviceWithRemoval = service as PlannerService & {
+    removeItem(expectedRevision: number, itemId: string): { ok: boolean; revision: number; error?: { code: string } };
+  };
+  assert.equal(typeof serviceWithRemoval.removeItem, 'function');
+
+  const removed = serviceWithRemoval.removeItem(3, 'sofa-1');
   assert.equal(removed.ok, false);
   assert.equal(removed.error?.code, 'LOCKED_ITEM_CHANGED');
   assert.equal(service.getSnapshot().state.revision, 3);
   assert.equal(service.getSnapshot().state.workingLayout.items.some((item) => item.itemId === 'sofa-1'), true);
+});
+
+void test('placing catalogue furniture uses the user-chosen valid position', () => {
+  const service = new PlannerService();
+
+  const placed = service.addCatalogueItem(1, 'armchair', { xMm: 2000, yMm: 1500, rotationDeg: 90 });
+
+  assert.equal(placed.ok, true);
+  assert.deepEqual(placed.ok && {
+    catalogueItemId: placed.item.catalogueItemId,
+    xMm: placed.item.xMm,
+    yMm: placed.item.yMm,
+    rotationDeg: placed.item.rotationDeg,
+  }, {
+    catalogueItemId: 'armchair',
+    xMm: 2000,
+    yMm: 1500,
+    rotationDeg: 90,
+  });
+  assert.equal(service.getSnapshot().state.revision, 2);
+});
+
+void test('placing catalogue furniture rejects an invalid chosen position without changing state', () => {
+  const service = new PlannerService();
+  assert.equal(service.addCatalogueItem(1, 'armchair', { xMm: 2000, yMm: 1500, rotationDeg: 0 }).ok, true);
+
+  const rejected = service.addCatalogueItem(2, 'side-square', { xMm: 2000, yMm: 1500, rotationDeg: 0 });
+
+  assert.equal(rejected.ok, false);
+  assert.equal(rejected.ok ? '' : rejected.error.code, 'INVALID_LAYOUT');
+  assert.equal(service.getSnapshot().state.revision, 2);
+  assert.equal(service.getSnapshot().state.workingLayout.items.length, 1);
+});
+
+void test('moving and rotating an unlocked item commits one valid change', () => {
+  const service = new PlannerService();
+  const placed = service.addCatalogueItem(1, 'armchair', { xMm: 2000, yMm: 1500, rotationDeg: 0 });
+  assert.equal(placed.ok, true);
+  if (!placed.ok) return;
+
+  const moved = service.updateItemPlacement(2, placed.item.itemId, { xMm: 3000, yMm: 1500, rotationDeg: 90 });
+
+  assert.equal(moved.ok, true);
+  assert.deepEqual(moved.ok && moved.item, {
+    ...placed.item,
+    xMm: 3000,
+    yMm: 1500,
+    rotationDeg: 90,
+  });
+  assert.equal(service.getSnapshot().state.revision, 3);
+  assert.equal(service.getSnapshot().activity[0]?.action, 'Moved Armchair');
+});
+
+void test('moving a Locked Item or using an invalid position is rejected', () => {
+  const service = new PlannerService();
+  const placed = service.addCatalogueItem(1, 'armchair', { xMm: 2000, yMm: 1500, rotationDeg: 0 });
+  assert.equal(placed.ok, true);
+  if (!placed.ok) return;
+
+  const invalid = service.updateItemPlacement(2, placed.item.itemId, { xMm: 100, yMm: 100, rotationDeg: 0 });
+  assert.equal(invalid.ok, false);
+  assert.equal(invalid.ok ? '' : invalid.error.code, 'INVALID_LAYOUT');
+  assert.equal(service.setItemLock(2, placed.item.itemId, true).ok, true);
+
+  const locked = service.updateItemPlacement(3, placed.item.itemId, { xMm: 3000, yMm: 1500, rotationDeg: 90 });
+  assert.equal(locked.ok, false);
+  assert.equal(locked.ok ? '' : locked.error.code, 'LOCKED_ITEM_CHANGED');
+  assert.equal(service.getSnapshot().state.revision, 3);
 });
