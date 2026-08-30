@@ -603,6 +603,26 @@ export class PlannerService {
     return { ok: true, revision, item: clone(nextItem) };
   }
 
+  removeItem(expectedRevision: number, itemId: string, actor: Actor = 'human'): PlannerResult<{ removedItemId: string }> {
+    const stale = this.stale(expectedRevision);
+    if (stale) return stale;
+    const item = this.state.workingLayout.items.find((entry) => entry.itemId === itemId);
+    if (!item) return { ok: false, revision: this.state.revision, error: { code: 'ITEM_NOT_FOUND', message: `${itemId} is not in the Working Layout.` } };
+    if (item.locked) return { ok: false, revision: this.state.revision, error: { code: 'LOCKED_ITEM_CHANGED', message: 'Unlock the item before removing it.' } };
+    const items = this.state.workingLayout.items.filter((entry) => entry.itemId !== itemId);
+    const validation = validateCandidateLayout({
+      revision: this.state.revision,
+      room: this.state.room,
+      candidateItems: items,
+      lockedItems: this.state.workingLayout.items.filter((entry) => entry.locked),
+    });
+    if (!validation.valid) return { ok: false, revision: this.state.revision, error: { code: 'INVALID_LAYOUT', message: 'Removing that item would invalidate the Working Layout.', violations: validation.violations } };
+    const next = clone(this.state);
+    next.workingLayout.items = clone(items);
+    const revision = this.commit(next, actor, `Removed ${CATALOGUE_BY_ID.get(item.catalogueItemId)?.name ?? itemId}`);
+    return { ok: true, revision, removedItemId: itemId };
+  }
+
   addCatalogueItem(expectedRevision: number, catalogueItemId: string): PlannerResult<{ item: PlacedItem }> {
     const stale = this.stale(expectedRevision);
     if (stale) return stale;

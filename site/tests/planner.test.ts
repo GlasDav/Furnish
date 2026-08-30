@@ -111,3 +111,31 @@ void test('undo restores the complete previous state at a higher revision', () =
   assert.equal(service.getSnapshot().state.workingLayout.items.length, 0);
   assert.equal(service.getSnapshot().state.variants.length, 0);
 });
+
+void test('removing an unlocked item updates the Working Layout and undo restores it', () => {
+  const service = new PlannerService();
+  assert.equal(service.commitPreparedVariant('conversation').ok, true);
+
+  const removed = service.removeItem(2, 'armchair-1');
+  assert.equal(removed.ok, true);
+  assert.equal(removed.revision, 3);
+  assert.equal(service.getSnapshot().state.workingLayout.items.some((item) => item.itemId === 'armchair-1'), false);
+  assert.equal(service.getSnapshot().state.variants[0]?.items.some((item) => item.itemId === 'armchair-1'), true);
+  assert.equal(service.getSnapshot().activity[0]?.action, 'Removed Armchair');
+
+  const undone = service.undo(3);
+  assert.equal(undone.ok, true);
+  assert.equal(service.getSnapshot().state.workingLayout.items.some((item) => item.itemId === 'armchair-1'), true);
+});
+
+void test('removing a Locked Item is rejected without changing state', () => {
+  const service = new PlannerService();
+  assert.equal(service.commitPreparedVariant('conversation').ok, true);
+  assert.equal(service.setItemLock(2, 'sofa-1', true).ok, true);
+
+  const removed = service.removeItem(3, 'sofa-1');
+  assert.equal(removed.ok, false);
+  assert.equal(removed.error?.code, 'LOCKED_ITEM_CHANGED');
+  assert.equal(service.getSnapshot().state.revision, 3);
+  assert.equal(service.getSnapshot().state.workingLayout.items.some((item) => item.itemId === 'sofa-1'), true);
+});

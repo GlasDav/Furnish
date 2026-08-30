@@ -176,6 +176,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, va
 .selection-card dl div { border-top: 1px solid var(--border); display: flex; font-size: 9px; justify-content: space-between; padding: 6px 0; }
 .selection-card dt { color: var(--muted-foreground); }
 .selection-card dd { font-weight: 750; margin: 0; }
+.selection-actions { display: flex; gap: 7px; }
 .actor-agent { background: var(--accent) !important; color: white; }
 .actor-human { background: var(--primary) !important; color: var(--primary-foreground); }
 
