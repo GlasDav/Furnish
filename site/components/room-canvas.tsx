@@ -112,7 +112,7 @@ export function RoomCanvas({
   const viewWidth = width + INSET * 2;
   const viewHeight = height + INSET * 2 + (compact ? 0 : 10);
   const sortedItems = [...items].sort((left, right) => Number(catalogueById.get(left.catalogueItemId)?.solid) - Number(catalogueById.get(right.catalogueItemId)?.solid));
-  const furnitureLabels = createFurnitureLabels(sortedItems, CATALOGUE);
+  const furnitureLabels = createFurnitureLabels(sortedItems, CATALOGUE, compact);
 
   return (
     <svg className={`room-canvas ${compact ? 'compact' : ''}`} viewBox={`0 0 ${viewWidth} ${viewHeight}`}>
@@ -137,7 +137,14 @@ export function RoomCanvas({
           ))}
           <g className="furniture-labels" aria-hidden="true">
             {furnitureLabels.map((itemLabel) => (
-              <text className="furniture-label" key={itemLabel.itemId} x={itemLabel.x} y={itemLabel.y}>{itemLabel.name}</text>
+              <g className="furniture-label" key={itemLabel.itemId} transform={`translate(${itemLabel.x} ${itemLabel.y})`}>
+                <rect x={-itemLabel.width / 2} y={-itemLabel.height / 2} width={itemLabel.width} height={itemLabel.height} rx="4" />
+                <text fontSize={itemLabel.fontSize}>
+                  {itemLabel.lines.map((line, index) => (
+                    <tspan key={`${line}-${index}`} x="0" y={-(itemLabel.lines.length - 1) * itemLabel.lineHeight / 2 + itemLabel.fontSize * 0.34 + index * itemLabel.lineHeight}>{line}</tspan>
+                  ))}
+                </text>
+              </g>
             ))}
           </g>
         </>

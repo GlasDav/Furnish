@@ -131,8 +131,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, va
 .furniture-plant .furniture-body { fill: #9fb194; stroke: #52654b; }
 .furniture-symbol { cursor: pointer; outline: none; }
 .furniture-symbol.selected .furniture-body { filter: drop-shadow(0 0 5px rgb(200 255 46 / 80%)); stroke: #739600; stroke-width: 4; }
-.furniture-label { fill: var(--foreground); font-size: 11px; font-weight: 800; paint-order: stroke fill; pointer-events: none; stroke: #fffef9; stroke-linejoin: round; stroke-width: 4px; text-anchor: middle; user-select: none; }
-.room-canvas.compact .furniture-label { font-size: 14px; stroke-width: 5px; }
+.furniture-label { pointer-events: none; user-select: none; }
+.furniture-label rect { fill: rgb(255 254 249 / 88%); stroke: rgb(74 73 67 / 24%); stroke-width: .8; }
+.furniture-label text { fill: var(--foreground); font-weight: 750; letter-spacing: -.02em; text-anchor: middle; }
 .lock-mark circle { fill: var(--foreground); stroke: white; stroke-width: 2; }
 .lock-mark path { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 .canvas-legend { color: var(--muted-foreground); display: flex; font-size: 9px; gap: 16px; justify-content: center; }
