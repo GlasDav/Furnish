@@ -1,47 +1,48 @@
 # Furnish
 
-Furnish is a shared human-agent room planner built for a three-minute ChatGPT Sites demonstration.
+Furnish is a shared human-agent room planner built for the WebMCP Challenge.
 
-**Live Site:** [furnish-agent-room-planner.davidglasser2.chatgpt.site](https://furnish-agent-room-planner.davidglasser2.chatgpt.site)
+- [Live Site](https://furnish-agent-room-planner.davidglasser2.chatgpt.site)
+- [Judge guide and prompts](docs/JUDGE_GUIDE.md)
+- [Architecture and WebMCP](docs/ARCHITECTURE.md)
+- [Submission package](docs/SUBMISSION.md)
 
-The Prepared Room is a 6.0 × 4.5 metre living room. ChatGPT can create a Conversation Variant, the user can move and lock the sofa, and ChatGPT can then create a Media Variant without changing that Locked Item. Both Variants remain available for comparison and SVG export.
+The Prepared Room is a 6.0 × 4.5 metre living room. ChatGPT creates a Conversation Variant; the user moves and locks the sofa; ChatGPT replans a Media Variant without changing that Locked Item. Both Variants remain available for comparison and SVG export.
 
-## Demo flow
+## Three-minute flow
 
 1. Create the Conversation Variant.
 2. Move the sofa to the west wall.
 3. Lock the sofa.
 4. Create the Media Variant around the Locked Item.
-5. Compare the two preserved Variants.
+5. Compare the preserved Variants.
 6. Export the chosen Working Layout as SVG.
 
-Manual controls and five WebMCP tools call the same revisioned Planner Service. Every write is stale-revision gated and atomically validated for room containment, solid-item overlap, opening clearance, the 900 mm Circulation Route, and Locked Items.
+The page also exposes buttons for the same flow, so it remains usable when WebMCP tools are unavailable.
 
-## Local development
+## Run locally
+
+Requirements: Node.js 22.13 or newer and npm.
 
 ```powershell
 cd site
-npm install
+npm ci
+npm test
+npm run lint
+npm run build
 npm run dev
 ```
 
-Focused checks:
+Open the local URL printed by the development server. No account, API key, database, or environment file is required.
 
-```powershell
-npm test
-npm run build
-```
+## What is included
 
-## WebMCP tools
+- A revisioned Planner State shared by the page and five WebMCP tools.
+- Atomic validation for containment, overlap, openings, circulation, and Locked Items.
+- Two deterministic layouts using 16 Layout-Verified catalogue items.
+- A browsable 140-model catalogue derived from Kenney's CC0 Furniture Kit.
+- Five focused tests covering the judge flow and hard geometry/state failures.
 
-- `read_planner_state`
-- `validate_candidate_layout`
-- `commit_variant`
-- `undo_last_change`
-- `export_working_layout`
+## Licence and notices
 
-The planner remains fully usable when Site tools are unavailable.
-
-## Catalogue provenance
-
-The catalogue lists all 140 source models from the [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit), released under [Creative Commons CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Sixteen items have verified planner dimensions and footprints for deterministic agent layouts; the rest are available for manual browsing and placement with clearly marked provisional footprints.
+Furnish source code is available under the [MIT Licence](LICENSE). Third-party attribution is in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
