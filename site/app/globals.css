@@ -179,7 +179,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, va
 .selection-card dl div { border-top: 1px solid var(--border); display: flex; font-size: 9px; justify-content: space-between; padding: 6px 0; }
 .selection-card dt { color: var(--muted-foreground); }
 .selection-card dd { font-weight: 750; margin: 0; }
-.selection-actions { display: flex; gap: 7px; }
+.selection-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .actor-agent { background: var(--accent) !important; color: white; }
 .actor-human { background: var(--primary) !important; color: var(--primary-foreground); }
 
@@ -229,6 +229,31 @@ button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, va
 .variant-grid article span { color: var(--muted-foreground); font-size: 8px; }
 .variant-grid article em { background: var(--primary); border-radius: 999px; color: var(--primary-foreground); font-size: 7px; font-style: normal; font-weight: 850; padding: 5px 7px; text-transform: uppercase; }
 .empty-dialog { color: var(--muted-foreground); font-size: 12px; padding: 30px; text-align: center; }
+
+.room-wrap { position: relative; }
+.room-canvas.interactive .furniture-symbol { touch-action: none; }
+.placement-active .canvas-card { min-height: 0; }
+.placement-steps { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; }
+.placement-steps li { align-items: center; color: var(--muted-foreground); display: flex; flex-direction: column; font-size: 8px; font-weight: 800; gap: 4px; }
+.placement-steps li span { align-items: center; background: var(--muted); border-radius: 999px; display: flex; height: 24px; justify-content: center; width: 24px; }
+.placement-steps li.done span { background: var(--foreground); color: var(--card); }
+.placement-steps li.current { color: var(--foreground); }
+.placement-steps li.current span { background: var(--primary); color: var(--primary-foreground); }
+.placement-hint { align-items: center; background: var(--foreground); border-radius: 11px; color: var(--card); display: flex; gap: 9px; left: 50%; padding: 10px 13px; position: absolute; top: 14px; transform: translateX(-50%); z-index: 2; }
+.placement-hint svg { color: var(--primary); height: 16px; width: 16px; }
+.placement-hint span, .placement-status span { display: flex; flex-direction: column; font-size: 8px; }
+.placement-hint strong, .placement-status strong { font-size: 9px; }
+.placement-dock { align-items: center; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; padding-top: 10px; }
+.placement-nudge { display: flex; gap: 4px; }
+.placement-nudge button, .placement-nudge span { align-items: center; background: var(--muted); border: 1px solid var(--border); border-radius: 7px; display: flex; height: 32px; justify-content: center; width: 32px; }
+.placement-nudge span { color: var(--muted-foreground); font-size: 7px; }
+.placement-nudge svg { height: 13px; width: 13px; }
+.placement-rotate { align-items: center; background: var(--muted); border: 1px solid var(--border); border-radius: 9px; display: grid; font-size: 8px; gap: 1px 6px; grid-template-columns: auto auto; padding: 7px 10px; }
+.placement-rotate svg { grid-row: 1 / 3; height: 15px; width: 15px; }
+.placement-rotate strong { font-size: 9px; }
+.placement-status { align-items: center; color: #246448; display: flex; gap: 7px; max-width: 230px; }
+.placement-status.blocked { color: #a93737; }
+.placement-status > svg { flex: 0 0 auto; height: 17px; width: 17px; }
 
 @keyframes connection-pulse { 50% { opacity: .48; transform: scale(.78); } }
 @keyframes notice-rise { from { opacity: 0; transform: translateY(8px); } }
