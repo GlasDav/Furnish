@@ -9,7 +9,6 @@ import {
   ArrowUp,
   Boxes,
   Check,
-  Download,
   GalleryVerticalEnd,
   Lock,
   Move,
@@ -17,7 +16,6 @@ import {
   RotateCw,
   RotateCcw,
   Search,
-  Sparkles,
   Trash2,
   Undo2,
   Unlock,
@@ -50,31 +48,8 @@ import {
   type Variant,
 } from '@/lib/planner';
 
-type FlowStep = 'furnish' | 'move' | 'lock' | 'replan' | 'compare' | 'export';
 type Notice = { tone: 'success' | 'error' | 'info'; text: string } | null;
 type PlacementDraft = { kind: 'add' | 'edit'; item: PlacedItem };
-
-const flowLabels = ['Furnish', 'Move', 'Lock', 'Replan', 'Compare', 'Export'];
-
-function deriveFlowStep(variants: Variant[], sofa: { xMm: number; yMm: number; locked: boolean } | undefined, hasCompared: boolean): FlowStep {
-  if (!variants.length) return 'furnish';
-  if (variants.length === 1 && sofa && (sofa.xMm !== 750 || sofa.yMm !== 2250)) return 'move';
-  if (variants.length === 1 && sofa && !sofa.locked) return 'lock';
-  if (variants.length === 1) return 'replan';
-  if (!hasCompared) return 'compare';
-  return 'export';
-}
-
-function stepCopy(step: FlowStep) {
-  return {
-    furnish: { turn: 'Agent turn', title: 'Furnish for conversation', button: 'Create Conversation Variant' },
-    move: { turn: 'Your turn', title: 'Move the sofa to the west wall', button: 'Move sofa west' },
-    lock: { turn: 'Your turn', title: 'Lock the sofa in place', button: 'Lock sofa' },
-    replan: { turn: 'Agent turn', title: 'Replan around the Locked Item', button: 'Create Media Variant' },
-    compare: { turn: 'Your turn', title: 'Compare preserved Variants', button: 'Compare Variants' },
-    export: { turn: 'Your turn', title: 'Export the chosen layout', button: 'Export SVG' },
-  }[step];
-}
 
 function RoomEditor({
   open,
@@ -210,7 +185,6 @@ function VariantsDialog({
   room,
   revision,
   onOpenChange,
-  onCompared,
   onNotice,
 }: {
   open: boolean;
@@ -218,7 +192,6 @@ function VariantsDialog({
   room: Room;
   revision: number;
   onOpenChange: (open: boolean) => void;
-  onCompared: () => void;
   onNotice: (notice: Notice) => void;
 }) {
   const load = (variantId: string) => {
@@ -227,7 +200,7 @@ function VariantsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { onOpenChange(nextOpen); if (nextOpen && variants.length > 1) onCompared(); }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="variants-dialog">
         <DialogHeader>
           <DialogTitle>Compare preserved Variants</DialogTitle>
@@ -243,7 +216,7 @@ function VariantsDialog({
               </article>
             ))}
           </div>
-        ) : <p className="empty-dialog">No Variants yet. Ask ChatGPT to furnish the Prepared Room first.</p>}
+        ) : <p className="empty-dialog">No Variants yet. ChatGPT can preserve layouts while you work together.</p>}
       </DialogContent>
     </Dialog>
   );
@@ -256,15 +229,10 @@ export default function Home() {
   const [catalogueOpen, setCatalogueOpen] = useState(false);
   const [roomOpen, setRoomOpen] = useState(false);
   const [variantsOpen, setVariantsOpen] = useState(false);
-  const [hasCompared, setHasCompared] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [placementDraft, setPlacementDraft] = useState<PlacementDraft | null>(null);
   const selectedItem = state.workingLayout.items.find((item) => item.itemId === selectedItemId);
   const selectedDefinition = selectedItem ? CATALOGUE.find((item) => item.catalogueItemId === selectedItem.catalogueItemId) : undefined;
-  const sofa = state.workingLayout.items.find((item) => item.itemId === 'sofa-1');
-  const step = deriveFlowStep(state.variants, sofa, hasCompared);
-  const copy = stepCopy(step);
-  const completedSteps = flowLabels.findIndex((label) => label.toLowerCase() === step);
   const currentVariant = state.variants.at(-1)?.name;
   const placementDefinition = placementDraft ? CATALOGUE.find((item) => item.catalogueItemId === placementDraft.item.catalogueItemId) : undefined;
   const placementItems = useMemo(() => {
@@ -370,24 +338,17 @@ export default function Home() {
     }
   };
 
-  const runPrimaryAction = () => {
-    if (step === 'furnish') return showResult(plannerService.commitPreparedVariant('conversation'), 'Conversation Variant created.');
-    if (step === 'move') return showResult(plannerService.moveSofaToMediaPose(state.revision), 'Sofa moved; two unlocked conflicting items were cleared.');
-    if (step === 'lock') return showResult(plannerService.setItemLock(state.revision, 'sofa-1', true), 'Sofa locked in place.');
-    if (step === 'replan') return showResult(plannerService.commitPreparedVariant('media'), 'Media Variant created around the Locked Item.');
-    if (step === 'compare') {
-      setVariantsOpen(true);
-      setHasCompared(true);
-      return;
-    }
-    exportLayout();
-  };
-
   const connectionCopy = {
     checking: 'Checking Site tools',
     ready: 'Site tools active',
     manual: 'Manual mode',
     error: 'Site tools unavailable',
+  }[webMcpStatus];
+  const workspaceCopy = {
+    checking: 'This planner will stay in sync as soon as Site tools are available.',
+    ready: 'ChatGPT can read and update this planner through Site tools. Make changes here or ask for help in chat.',
+    manual: 'Edit the Room and arrange furniture directly. Open this Site in ChatGPT to work together.',
+    error: 'Keep planning here while Site tools reconnect. Your direct controls remain available.',
   }[webMcpStatus];
 
   return (
@@ -398,8 +359,9 @@ export default function Home() {
         <div className="project-name"><strong>Prepared living room</strong><span>Shared planner · revision {state.revision}</span></div>
         <div className="topbar-actions">
           <span className={`connection-status status-${webMcpStatus}`}><i /> {connectionCopy}</span>
+          <Button variant="outline" size="sm" onClick={exportLayout}>Export SVG</Button>
           <Button variant="outline" size="sm" disabled={!canUndo} onClick={() => showResult(plannerService.undo(state.revision), 'Last change undone.')}><Undo2 /> Undo</Button>
-          <Button variant="outline" size="sm" onClick={() => { showResult(plannerService.resetDemo(state.revision), 'Prepared Room reset.'); setHasCompared(false); setSelectedItemId(null); setPlacementDraft(null); }}><RotateCcw /> Reset</Button>
+          <Button variant="outline" size="sm" onClick={() => { showResult(plannerService.resetDemo(state.revision), 'Prepared Room reset.'); setSelectedItemId(null); setPlacementDraft(null); }}><RotateCcw /> Reset</Button>
         </div>
       </header>
 
@@ -420,17 +382,11 @@ export default function Home() {
         </section>
 
         <aside className="inspector" aria-label="Planner inspector">
-          <section className="next-card">
-            <span className={`turn-label ${copy.turn === 'Agent turn' ? 'agent' : 'human'}`}>{copy.turn}</span>
-            <span className="eyebrow">Next action</span>
-            <h2>{copy.title}</h2>
-            <div className="flow-progress" aria-label="Judge workflow progress">
-              {flowLabels.map((label, index) => <span key={label} className={index < completedSteps ? 'done' : index === completedSteps ? 'current' : ''} title={label}>{index < completedSteps ? <Check /> : index + 1}</span>)}
-            </div>
-            <Button className="primary-action" size="lg" onClick={runPrimaryAction}>
-              {step === 'furnish' || step === 'replan' ? <Sparkles /> : step === 'move' ? <Move /> : step === 'lock' ? <Lock /> : step === 'compare' ? <GalleryVerticalEnd /> : <Download />}
-              {copy.button}
-            </Button>
+          <section className={`shared-card shared-${webMcpStatus}`}>
+            <span className="eyebrow">Shared workspace</span>
+            <h2>Plan together, live</h2>
+            <p>{workspaceCopy}</p>
+            <footer><span><i />{connectionCopy}</span><span>Revision {state.revision}</span></footer>
           </section>
 
           <section className={`validation-card ${state.workingLayout.items.length ? (validation.valid ? 'valid' : 'blocked') : 'ready'}`}>
@@ -457,7 +413,7 @@ export default function Home() {
       {notice && <output className={`notice notice-${notice.tone}`} aria-live="polite">{notice.tone === 'success' && <Check />}{notice.text}</output>}
       <RoomEditor open={roomOpen} room={state.room} revision={state.revision} onOpenChange={setRoomOpen} onNotice={setNotice} />
       <CatalogueDialog open={catalogueOpen} onOpenChange={setCatalogueOpen} onPlace={beginCataloguePlacement} />
-      <VariantsDialog open={variantsOpen} variants={state.variants} room={state.room} revision={state.revision} onOpenChange={setVariantsOpen} onCompared={() => setHasCompared(true)} onNotice={setNotice} />
+      <VariantsDialog open={variantsOpen} variants={state.variants} room={state.room} revision={state.revision} onOpenChange={setVariantsOpen} onNotice={setNotice} />
     </main>
   );
 }

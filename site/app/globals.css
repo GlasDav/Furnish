@@ -143,19 +143,14 @@ button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, va
 .route-key { background: color-mix(in srgb, var(--accent) 50%, white); }
 
 .inspector { display: flex; flex-direction: column; gap: 12px; overflow: auto; }
-.next-card { background: var(--foreground); border-radius: 15px; color: var(--card); padding: 17px; }
-.next-card .eyebrow { color: #aaa79d; margin-top: 14px; }
-.turn-label { border-radius: 999px; display: inline-flex; font-size: 8px; font-weight: 850; letter-spacing: .1em; padding: 6px 8px; text-transform: uppercase; }
-.turn-label.agent { background: var(--accent); color: white; }
-.turn-label.human { background: var(--primary); color: var(--primary-foreground); }
-.next-card h2 { font-size: 20px; letter-spacing: -.035em; line-height: 1.12; margin: 6px 0 15px; }
-.flow-progress { display: grid; gap: 5px; grid-template-columns: repeat(6, 1fr); margin: 0 0 13px; }
-.flow-progress span { align-items: center; background: #3a3935; border: 1px solid #4d4b46; border-radius: 7px; color: #928f86; display: flex; font-size: 8px; font-weight: 850; height: 24px; justify-content: center; }
-.flow-progress span.done { background: #315f4e; border-color: #467b66; color: white; }
-.flow-progress span.current { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
-.flow-progress svg { height: 11px; width: 11px; }
-.primary-action { background: var(--primary); color: var(--primary-foreground); min-height: 42px; width: 100%; }
-.primary-action:hover { background: color-mix(in srgb, var(--primary) 84%, white); }
+.shared-card { background: var(--foreground); border-radius: 15px; color: var(--card); padding: 17px; }
+.shared-card .eyebrow { color: #aaa79d; }
+.shared-card h2 { font-size: 20px; letter-spacing: -.035em; line-height: 1.12; margin: 6px 0 9px; }
+.shared-card p { color: #c5c2b8; font-size: 10px; line-height: 1.5; margin: 0; }
+.shared-card footer { align-items: center; border-top: 1px solid #46443f; color: #aaa79d; display: flex; font-size: 8px; font-weight: 750; justify-content: space-between; margin-top: 14px; padding-top: 11px; text-transform: uppercase; }
+.shared-card footer span:first-child { align-items: center; display: flex; gap: 6px; }
+.shared-card footer i { background: #8c8980; border-radius: 999px; height: 6px; width: 6px; }
+.shared-card.shared-ready footer i { background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
 .validation-card, .activity-card, .selection-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .validation-card { align-items: center; display: grid; gap: 11px; grid-template-columns: 34px 1fr; }
 .validation-mark { align-items: center; background: var(--muted); border-radius: 10px; display: flex; font-size: 16px; font-weight: 850; height: 34px; justify-content: center; }
