@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Search,
   Sparkles,
+  Trash2,
   Undo2,
   Unlock,
 } from 'lucide-react';
@@ -278,6 +279,13 @@ export default function Home() {
     setNotice({ tone: 'success', text: `${currentVariant ?? 'Working Layout'} exported as SVG.` });
   };
 
+  const removeSelectedItem = () => {
+    if (!selectedItem) return;
+    const result = plannerService.removeItem(state.revision, selectedItem.itemId);
+    showResult(result, 'Item removed from the Working Layout.');
+    if (result.ok) setSelectedItemId(null);
+  };
+
   const runPrimaryAction = () => {
     if (step === 'furnish') return showResult(plannerService.commitPreparedVariant('conversation'), 'Conversation Variant created.');
     if (step === 'move') return showResult(plannerService.moveSofaToMediaPose(state.revision), 'Sofa moved; two unlocked conflicting items were cleared.');
@@ -349,9 +357,9 @@ export default function Home() {
           <section className="selection-card">
             <span className="eyebrow">Selection</span>
             {selectedItem && selectedDefinition ? (
-              <><h3>{selectedDefinition.name}{selectedItem.locked && <em>Locked</em>}</h3><dl><div><dt>Size</dt><dd>{(selectedDefinition.widthMm / 1000).toFixed(1)} × {(selectedDefinition.depthMm / 1000).toFixed(1)} m</dd></div><div><dt>Position</dt><dd>{selectedItem.xMm}, {selectedItem.yMm} mm</dd></div><div><dt>Rotation</dt><dd>{selectedItem.rotationDeg}°</dd></div></dl><Button variant="outline" size="sm" onClick={() => showResult(plannerService.setItemLock(state.revision, selectedItem.itemId, !selectedItem.locked), selectedItem.locked ? 'Item unlocked.' : 'Item locked.')}>
+              <><h3>{selectedDefinition.name}{selectedItem.locked && <em>Locked</em>}</h3><dl><div><dt>Size</dt><dd>{(selectedDefinition.widthMm / 1000).toFixed(1)} × {(selectedDefinition.depthMm / 1000).toFixed(1)} m</dd></div><div><dt>Position</dt><dd>{selectedItem.xMm}, {selectedItem.yMm} mm</dd></div><div><dt>Rotation</dt><dd>{selectedItem.rotationDeg}°</dd></div></dl><div className="selection-actions"><Button variant="outline" size="sm" onClick={() => showResult(plannerService.setItemLock(state.revision, selectedItem.itemId, !selectedItem.locked), selectedItem.locked ? 'Item unlocked.' : 'Item locked.')}>
                 {selectedItem.locked ? <Unlock /> : <Lock />}{selectedItem.locked ? 'Unlock' : 'Lock'}
-              </Button></>
+              </Button><Button variant="destructive" size="sm" disabled={selectedItem.locked} title={selectedItem.locked ? 'Unlock this item before removing it.' : 'Remove this item from the Working Layout'} onClick={removeSelectedItem}><Trash2 />Remove</Button></div></>
             ) : <p>Select an item to see its dimensions, position and lock state.</p>}
           </section>
 
