@@ -9,7 +9,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline
 
 .workspace {
   --bg: #f2efe7; --panel: #fffdf7; --ink: #23221f; --muted: #77736a; --line: #dcd7cb;
-  --accent: #d75832; --accent-ink: #fff; --agent: #168a79; --human: #d75832; --focus: #fb9c7f;
+  --accent: #d75832; --accent-ink: #fff; --agent: #168a79; --human: #d75832; --success: #28745f; --focus: #fb9c7f;
   --room: #fffdf7; --grid: #e7e0d3; --wall: #272622; --opening: #3c93ad; --route: #18a38d;
   --furniture: #eaa06d; --furniture-stroke: #813c27; --surface: #d6b978; --green: #4d8b59;
   --heading: Georgia, "Times New Roman", serif;
@@ -17,14 +17,14 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline
 }
 .direction-b {
   --bg: #e9f0f5; --panel: #f9fcff; --ink: #0c2d48; --muted: #587188; --line: #bed0de;
-  --accent: #075ccf; --accent-ink: #fff; --agent: #00a78e; --human: #075ccf; --focus: #41a0ff;
+  --accent: #075ccf; --accent-ink: #fff; --agent: #00a78e; --human: #075ccf; --success: #087b67; --focus: #41a0ff;
   --room: #eef7ff; --grid: #b8d4e8; --wall: #0c2d48; --opening: #087bd5; --route: #00a78e;
   --furniture: #d9ebfa; --furniture-stroke: #075ccf; --surface: #aad5f4; --green: #00a78e;
   --heading: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 .direction-c {
   --bg: #e9e7e1; --panel: #f8f6f0; --ink: #161614; --muted: #6c6a63; --line: #bdbab0;
-  --accent: #e8ff52; --accent-ink: #161614; --agent: #6b55df; --human: #161614; --focus: #6b55df;
+  --accent: #e8ff52; --accent-ink: #161614; --agent: #6b55df; --human: #161614; --success: #52702d; --focus: #6b55df;
   --room: #f4f1e8; --grid: #dad6cb; --wall: #161614; --opening: #6b55df; --route: #6b55df;
   --furniture: #161614; --furniture-stroke: #161614; --surface: #a19f98; --green: #617a37;
   --heading: Inter, ui-sans-serif, system-ui, sans-serif;
@@ -62,7 +62,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline
 .direction-b .canvas-heading h1 { font-size: 20px; font-weight: 700; letter-spacing: -.04em; text-transform: uppercase; }
 .direction-c .canvas-heading h1 { font-size: 27px; font-weight: 750; letter-spacing: -.06em; }
 .canvas-status { border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 9px; font-weight: 850; padding: 7px 10px; }
-.canvas-status.valid { background: color-mix(in srgb, var(--agent) 12%, var(--panel)); border-color: color-mix(in srgb, var(--agent) 35%, var(--line)); color: var(--agent); }
+.canvas-status.valid { background: color-mix(in srgb, var(--success) 12%, var(--panel)); border-color: color-mix(in srgb, var(--success) 35%, var(--line)); color: var(--success); }
 .canvas-status.warning { background: #fff4cf; border-color: #e5bd40; color: #765500; }
 .canvas-status.blocked { background: #ffe0dc; border-color: #e47768; color: #a6291a; }
 .direction-b .canvas-status { border-radius: 2px; font-family: var(--heading); text-transform: uppercase; }
@@ -150,13 +150,13 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline
 .validation-card strong { display: block; font-size: 12px; margin-top: 4px; }
 .validation-card p, .selection-card p { color: var(--muted); font-size: 9px; line-height: 1.45; margin: 4px 0 0; }
 .validation-card.ready .validation-icon { background: color-mix(in srgb, var(--muted) 12%, var(--panel)); color: var(--muted); }
-.validation-card.valid { border-color: color-mix(in srgb, var(--agent) 36%, var(--line)); }
-.validation-card.valid .validation-icon { background: color-mix(in srgb, var(--agent) 14%, var(--panel)); color: var(--agent); }
+.validation-card.valid { border-color: color-mix(in srgb, var(--success) 36%, var(--line)); }
+.validation-card.valid .validation-icon { background: color-mix(in srgb, var(--success) 14%, var(--panel)); color: var(--success); }
 .validation-card.warning { background: #fffaf0; border-color: #e5bd40; }
 .validation-card.warning .validation-icon { background: #ffe9a3; color: #765500; }
 .validation-card.blocked { background: #fff5f3; border-color: #e47768; }
 .validation-card.blocked .validation-icon { background: #d94632; color: white; }
-.direction-c .validation-card.valid { border-left: 6px solid var(--agent); }
+.direction-c .validation-card.valid { border-left: 6px solid var(--success); }
 .direction-c .validation-card.warning { border-left: 6px solid #e5bd40; }
 .direction-c .validation-card.blocked { border-left: 6px solid #d94632; }
 .selection-card h3 { font-size: 12px; margin: 8px 0; }
