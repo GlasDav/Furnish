@@ -8,6 +8,7 @@ import {
   type PlacedItem,
   type Room,
 } from '@/lib/planner';
+import { createFurnitureLabels } from '@/components/room-labels';
 
 const catalogueById = new Map(CATALOGUE.map((item) => [item.catalogueItemId, item]));
 const SCALE = 0.1;
@@ -111,6 +112,7 @@ export function RoomCanvas({
   const viewWidth = width + INSET * 2;
   const viewHeight = height + INSET * 2 + (compact ? 0 : 10);
   const sortedItems = [...items].sort((left, right) => Number(catalogueById.get(left.catalogueItemId)?.solid) - Number(catalogueById.get(right.catalogueItemId)?.solid));
+  const furnitureLabels = createFurnitureLabels(sortedItems, CATALOGUE);
 
   return (
     <svg className={`room-canvas ${compact ? 'compact' : ''}`} viewBox={`0 0 ${viewWidth} ${viewHeight}`}>
@@ -129,9 +131,16 @@ export function RoomCanvas({
       <rect className="wall" x={INSET} y={INSET} width={width} height={height} rx="2" />
       {room.openings.map((opening) => <OpeningMark key={opening.openingId} opening={opening} room={room} />)}
       {sortedItems.length ? (
-        sortedItems.map((item) => (
-          <ItemSymbol key={item.itemId} item={item} selected={selectedItemId === item.itemId} onSelect={onSelect} />
-        ))
+        <>
+          {sortedItems.map((item) => (
+            <ItemSymbol key={item.itemId} item={item} selected={selectedItemId === item.itemId} onSelect={onSelect} />
+          ))}
+          <g className="furniture-labels" aria-hidden="true">
+            {furnitureLabels.map((itemLabel) => (
+              <text className="furniture-label" key={itemLabel.itemId} x={itemLabel.x} y={itemLabel.y}>{itemLabel.name}</text>
+            ))}
+          </g>
+        </>
       ) : (
         <g className="empty-room">
           <circle cx={INSET + width / 2} cy={INSET + height * 0.44} r="30" />
