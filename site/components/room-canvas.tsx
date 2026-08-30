@@ -113,7 +113,8 @@ export function RoomCanvas({
   const sortedItems = [...items].sort((left, right) => Number(catalogueById.get(left.catalogueItemId)?.solid) - Number(catalogueById.get(right.catalogueItemId)?.solid));
 
   return (
-    <svg className={`room-canvas ${compact ? 'compact' : ''}`} viewBox={`0 0 ${viewWidth} ${viewHeight}`} role="img" aria-label={label}>
+    <svg className={`room-canvas ${compact ? 'compact' : ''}`} viewBox={`0 0 ${viewWidth} ${viewHeight}`}>
+      <title>{label}</title>
       <defs>
         <pattern id={`grid-${generatedId}`} width="20" height="20" patternUnits="userSpaceOnUse">
           <path d="M20 0H0V20" />

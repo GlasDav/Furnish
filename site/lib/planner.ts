@@ -105,9 +105,11 @@ export type PlannerError = {
   violations?: Violation[];
 };
 
+export type PlannerFailure = { ok: false; revision: number; error: PlannerError };
+
 export type PlannerResult<T extends Record<string, unknown> = Record<string, never>> =
   | ({ ok: true; revision: number } & T)
-  | { ok: false; revision: number; error: PlannerError };
+  | PlannerFailure;
 
 export const CATALOGUE_SOURCE = {
   name: 'Kenney Furniture Kit',
@@ -507,7 +509,7 @@ export class PlannerService {
     this.listeners.forEach((listener) => listener());
   }
 
-  private stale(expectedRevision: number): PlannerResult | null {
+  private stale(expectedRevision: number): PlannerFailure | null {
     if (expectedRevision === this.state.revision) return null;
     return { ok: false, revision: this.state.revision, error: { code: 'STALE_REVISION', message: `Expected revision ${expectedRevision}, current revision is ${this.state.revision}.` } };
   }

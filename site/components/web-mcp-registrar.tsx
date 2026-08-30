@@ -13,7 +13,7 @@ type ToolDefinition = {
   description: string;
   inputSchema: Record<string, unknown>;
   annotations?: Record<string, boolean>;
-  execute: (input: Record<string, unknown>) => unknown | Promise<unknown>;
+  execute: (input: Record<string, unknown>) => unknown;
 };
 
 type ModelContext = {

@@ -109,8 +109,8 @@ function RoomEditor({
           <DialogDescription>Use millimetres. The Working Layout must remain valid.</DialogDescription>
         </DialogHeader>
         <div className="dimension-fields">
-          <label><span>Width</span><Input type="number" min={2500} max={12000} step={100} value={draft.widthMm} onChange={(event) => setDraft({ ...draft, widthMm: Number(event.target.value) })} /></label>
-          <label><span>Depth</span><Input type="number" min={2500} max={12000} step={100} value={draft.depthMm} onChange={(event) => setDraft({ ...draft, depthMm: Number(event.target.value) })} /></label>
+          <label htmlFor="room-width"><span>Width</span><Input id="room-width" type="number" min={2500} max={12000} step={100} value={draft.widthMm} onChange={(event) => setDraft({ ...draft, widthMm: Number(event.target.value) })} /></label>
+          <label htmlFor="room-depth"><span>Depth</span><Input id="room-depth" type="number" min={2500} max={12000} step={100} value={draft.depthMm} onChange={(event) => setDraft({ ...draft, depthMm: Number(event.target.value) })} /></label>
         </div>
         <section className="openings-editor">
           <header><div><span className="eyebrow">Openings</span><strong>Wall, type and offset</strong></div><Button variant="outline" size="sm" onClick={() => setDraft((current) => ({ ...current, openings: [...current.openings, { openingId: `window-${current.openings.length + 1}`, type: 'window', wall: 'north', startMm: 200, endMm: 1000 }] }))}>Add window</Button></header>
@@ -179,7 +179,7 @@ function CatalogueDialog({
             All {CATALOGUE_SOURCE.fileCount} models from the <a href={CATALOGUE_SOURCE.url} target="_blank" rel="noreferrer">Kenney Furniture Kit</a>, under <a href={CATALOGUE_SOURCE.licenseUrl} target="_blank" rel="noreferrer">CC0</a>. Agent layouts use the 16 verified items. <a href="/catalogue-manifest" target="_blank" rel="noreferrer">Source manifest</a>.
           </DialogDescription>
         </DialogHeader>
-        <label className="catalogue-search"><Search aria-hidden="true" /><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all furniture" /></label>
+        <label className="catalogue-search" htmlFor="catalogue-search"><Search aria-hidden="true" /><Input id="catalogue-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search all furniture" /></label>
         <div className="catalogue-grid">
           {filtered.map((item) => (
             <article key={item.catalogueItemId}>

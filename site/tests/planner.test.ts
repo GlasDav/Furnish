@@ -10,13 +10,13 @@ import {
   validateCandidateLayout,
 } from '../lib/planner.ts';
 
-test('catalogue exposes all 140 Kenney models and exactly 16 Layout-Verified items', () => {
+void test('catalogue exposes all 140 Kenney models and exactly 16 Layout-Verified items', () => {
   assert.equal(CATALOGUE.length, 140);
   assert.equal(VERIFIED_CATALOGUE.length, 16);
   assert.equal(new Set(CATALOGUE.map((item) => item.sourceModel)).size, 140);
 });
 
-test('judge workflow preserves the moved and Locked sofa across two valid Variants', () => {
+void test('judge workflow preserves the moved and Locked sofa across two valid Variants', () => {
   const service = new PlannerService();
 
   const conversation = service.commitPreparedVariant('conversation');
@@ -53,7 +53,7 @@ test('judge workflow preserves the moved and Locked sofa across two valid Varian
   assert.equal(service.getSnapshot().state.revision, 5);
 });
 
-test('validator rejects overlap, out of bounds, route blocking, and Locked Item changes', () => {
+void test('validator rejects overlap, out of bounds, route blocking, and Locked Item changes', () => {
   const overlap = structuredClone(PREPARED_TEMPLATES.conversation);
   Object.assign(overlap.find((item) => item.itemId === 'plant-1')!, { xMm: 3150, yMm: 2000 });
   const overlapResult = validateCandidateLayout({ revision: 1, room: PREPARED_ROOM, candidateItems: overlap, requireVerified: true });
@@ -77,7 +77,7 @@ test('validator rejects overlap, out of bounds, route blocking, and Locked Item 
   assert.ok(lockResult.violations.some((entry) => entry.code === 'LOCKED_ITEM_CHANGED'));
 });
 
-test('stale writes and invalid Locked Item commits leave state unchanged', () => {
+void test('stale writes and invalid Locked Item commits leave state unchanged', () => {
   const service = new PlannerService();
   assert.equal(service.commitPreparedVariant('conversation').ok, true);
 
@@ -102,7 +102,7 @@ test('stale writes and invalid Locked Item commits leave state unchanged', () =>
   assert.equal(service.getSnapshot().state.revision, 4);
 });
 
-test('undo restores the complete previous state at a higher revision', () => {
+void test('undo restores the complete previous state at a higher revision', () => {
   const service = new PlannerService();
   assert.equal(service.commitPreparedVariant('conversation').ok, true);
   const undone = service.undo(2);
